@@ -1,12 +1,12 @@
 import Edit from './edit';
+import info from './info';
 import Toolbar from './edit/Toolbar';
 
-const initState = () => ({ url: null });
+const initState = () => ({ url: null, key: null });
 
 export default {
+  ...info,
   name: 'Image',
-  type: 'IMAGE',
-  version: '1.0',
   initState,
   Edit,
   Toolbar,

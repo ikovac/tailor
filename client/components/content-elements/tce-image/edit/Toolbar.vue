@@ -46,7 +46,7 @@ export default {
       const reader = new window.FileReader();
       reader.readAsDataURL(image);
       reader.addEventListener('load', e => {
-        this.$elementBus.emit('upload', e.target.result);
+        this.$elementBus.emit('upload', { dataUrl: e.target.result, image });
       });
     },
     toggleTool(tool) {

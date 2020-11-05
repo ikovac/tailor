@@ -33,6 +33,7 @@
 </template>
 
 <script>
+import api from '../api';
 import Cropper from './Cropper';
 import { ElementPlaceholder } from 'tce-core';
 import { imgSrcToDataURL } from 'blob-util';
@@ -41,19 +42,6 @@ import isEmpty from 'lodash/isEmpty';
 function toDataUrl(imageUrl) {
   if (!imageUrl) return Promise.resolve(imageUrl);
   return imgSrcToDataURL(imageUrl, 'image/png', 'Anonymous');
-}
-
-function getImageDimensions(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve({ width: img.width, height: img.height });
-    img.onerror = event => {
-      const err = new Error(`Failed to load image: ${url}`);
-      err.cause = event;
-      reject(err);
-    };
-    img.src = url;
-  });
 }
 
 export default {
@@ -68,6 +56,8 @@ export default {
   data: () => ({
     currentImage: null,
     persistedImage: null,
+    imageName: null,
+    image: null,
     showCropper: false
   }),
   computed: {
@@ -88,16 +78,22 @@ export default {
       this.persistedImage = dataUrl;
       if (dataUrl && this.$refs.cropper) this.$refs.cropper.replace(dataUrl);
     },
-    save(image) {
-      return getImageDimensions(image).then(({ width, height }) => {
-        this.$emit('save', { url: image, meta: { width, height } });
-      });
+    save() {
+      const formData = new FormData();
+      formData.append('images', this.image, this.imageName);
+      api.upload(formData)
+        .then(images => {
+          if (isEmpty(images)) return;
+          const { key, src, width, height, placeholder } = images[0];
+          this.$emit('save', { url: src, key, placeholder, meta: { width, height } });
+        })
+        .catch(err => console.error(err));
     }
   },
   watch: {
     isFocused(focused) {
       if (focused) return;
-      if (this.persistedImage !== this.currentImage) this.save(this.currentImage);
+      if (this.persistedImage !== this.currentImage) this.save(this.image);
       if (this.currentImage) this.$refs.cropper.clear();
     },
     'element.data.url'(imageUrl) {
@@ -107,12 +103,15 @@ export default {
   mounted() {
     toDataUrl(this.element.data.url)
       .then(dataUrl => this.load(dataUrl));
+    this.imageName = this.element.data.key;
 
-    this.$elementBus.on('upload', dataUrl => {
+    this.$elementBus.on('upload', ({ dataUrl, image }) => {
       if (this.currentImage) this.$refs.cropper.replace(dataUrl);
       this.currentImage = dataUrl;
       this.persistedImage = dataUrl;
-      this.save(dataUrl);
+      this.imageName = image.name;
+      this.image = image;
+      this.save();
     });
 
     this.$elementBus.on('showCropper', () => {
@@ -126,8 +125,11 @@ export default {
     });
 
     this.$elementBus.on('crop', () => {
-      this.currentImage = this.$refs.cropper.getCroppedCanvas().toDataURL();
-      this.$refs.cropper.replace(this.currentImage);
+      this.$refs.cropper.getCroppedCanvas().toBlob(blob => {
+        this.image = blob;
+        this.currentImage = this.$refs.cropper.getCroppedCanvas().toDataURL();
+        this.$refs.cropper.replace(this.currentImage);
+      });
     });
 
     this.$elementBus.on('undo', () => {
