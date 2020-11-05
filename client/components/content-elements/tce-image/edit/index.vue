@@ -29,6 +29,10 @@
         drag-mode="none" />
       <img v-show="!showCropper" :src="currentImageSrc" class="preview-image">
     </div>
+    <v-progress-linear
+      v-if="isUploading"
+      indeterminate
+      color="primary" />
   </div>
 </template>
 
@@ -59,7 +63,8 @@ export default {
     imageName: null,
     currentImage: null,
     persistedImage: null,
-    showCropper: false
+    showCropper: false,
+    isUploading: false
   }),
   computed: {
     showPlaceholder() {
@@ -84,13 +89,15 @@ export default {
     save() {
       const formData = new FormData();
       formData.append('images', this.currentImage, this.imageName);
+      this.isUploading = true;
       api.upload(formData)
         .then(images => {
           if (isEmpty(images)) return;
           const { key, src, width, height, placeholder } = images[0];
           this.$emit('save', { url: src, key, placeholder, meta: { width, height } });
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error(err))
+        .finally(() => { this.isUploading = false; });
     }
   },
   watch: {
