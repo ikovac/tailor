@@ -25,9 +25,9 @@
         :scalable="false"
         :movable="false"
         :modal="false"
-        :src="currentImage"
+        :src="currentImageSrc"
         drag-mode="none" />
-      <img v-show="!showCropper" :src="currentImage" class="preview-image">
+      <img v-show="!showCropper" :src="currentImageSrc" class="preview-image">
     </div>
   </div>
 </template>
@@ -54,10 +54,11 @@ export default {
     dense: { type: Boolean, default: false }
   },
   data: () => ({
+    currentImageSrc: null,
+    persistedImageSrc: null,
+    imageName: null,
     currentImage: null,
     persistedImage: null,
-    imageName: null,
-    image: null,
     showCropper: false
   }),
   computed: {
@@ -74,13 +75,15 @@ export default {
       this.$refs.cropper.show();
     },
     load(dataUrl) {
-      this.currentImage = dataUrl;
-      this.persistedImage = dataUrl;
+      this.currentImageSrc = dataUrl;
+      this.persistedImageSrc = dataUrl;
+      this.currentImage = null;
+      this.persistedImage = null;
       if (dataUrl && this.$refs.cropper) this.$refs.cropper.replace(dataUrl);
     },
     save() {
       const formData = new FormData();
-      formData.append('images', this.image, this.imageName);
+      formData.append('images', this.currentImage, this.imageName);
       api.upload(formData)
         .then(images => {
           if (isEmpty(images)) return;
@@ -93,8 +96,8 @@ export default {
   watch: {
     isFocused(focused) {
       if (focused) return;
-      if (this.persistedImage !== this.currentImage) this.save(this.image);
-      if (this.currentImage) this.$refs.cropper.clear();
+      if (this.persistedImageSrc !== this.currentImageSrc) this.save();
+      if (this.currentImageSrc) this.$refs.cropper.clear();
     },
     'element.data.url'(imageUrl) {
       toDataUrl(imageUrl).then(dataUrl => this.load(dataUrl));
@@ -106,11 +109,12 @@ export default {
     this.imageName = this.element.data.key;
 
     this.$elementBus.on('upload', ({ dataUrl, image }) => {
-      if (this.currentImage) this.$refs.cropper.replace(dataUrl);
-      this.currentImage = dataUrl;
-      this.persistedImage = dataUrl;
+      if (this.currentImageSrc) this.$refs.cropper.replace(dataUrl);
+      this.currentImageSrc = dataUrl;
+      this.persistedImageSrc = dataUrl;
       this.imageName = image.name;
-      this.image = image;
+      this.currentImage = image;
+      this.persistedImage = image;
       this.save();
     });
 
@@ -126,15 +130,16 @@ export default {
 
     this.$elementBus.on('crop', () => {
       this.$refs.cropper.getCroppedCanvas().toBlob(blob => {
-        this.image = blob;
-        this.currentImage = this.$refs.cropper.getCroppedCanvas().toDataURL();
-        this.$refs.cropper.replace(this.currentImage);
+        this.currentImage = blob;
+        this.currentImageSrc = this.$refs.cropper.getCroppedCanvas().toDataURL();
+        this.$refs.cropper.replace(this.currentImageSrc);
       });
     });
 
     this.$elementBus.on('undo', () => {
+      this.currentImageSrc = this.persistedImageSrc;
       this.currentImage = this.persistedImage;
-      this.$refs.cropper.replace(this.persistedImage);
+      this.$refs.cropper.replace(this.persistedImageSrc);
     });
   },
   beforeDestroy() {
