@@ -13,7 +13,7 @@ const info = require('./info');
  * @return {Object} element with handled statics
  */
 function handleStatics(element, _defaultHandler, _generalHandler) {
-  return element;
+  return Promise.resolve(element);
 }
 
 module.exports = {
