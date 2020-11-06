@@ -1,5 +1,14 @@
 <template>
   <div class="tce-image">
+    <v-alert
+      @click:close="error = null"
+      :value="!!error"
+      color="error"
+      icon="mdi-alert"
+      dark dismissible
+      class="mb-12">
+      {{ error }}
+    </v-alert>
     <element-placeholder
       v-if="showPlaceholder"
       :is-focused="isFocused"
@@ -64,7 +73,8 @@ export default {
     currentImage: null,
     persistedImage: null,
     showCropper: false,
-    isUploading: false
+    isUploading: false,
+    error: null
   }),
   computed: {
     showPlaceholder() {
@@ -96,7 +106,7 @@ export default {
           const { key, src, width, height, placeholder } = images[0];
           this.$emit('save', { url: src, key, placeholder, meta: { width, height } });
         })
-        .catch(err => console.error(err))
+        .catch(() => { this.error = 'Something went wrong'; })
         .finally(() => { this.isUploading = false; });
     }
   },
