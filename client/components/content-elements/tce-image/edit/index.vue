@@ -103,8 +103,8 @@ export default {
       api.upload(formData)
         .then(images => {
           if (isEmpty(images)) return;
-          const { key, src, width, height, placeholder } = images[0];
-          this.$emit('save', { url: src, key, placeholder, meta: { width, height } });
+          const { src: url, key: name, width, height, placeholder } = images[0];
+          this.$emit('save', { url, name, placeholder, meta: { width, height } });
         })
         .catch(() => { this.error = 'Something went wrong'; })
         .finally(() => { this.isUploading = false; });

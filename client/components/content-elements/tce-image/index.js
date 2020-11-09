@@ -2,7 +2,7 @@ import Edit from './edit';
 import info from './info';
 import Toolbar from './edit/Toolbar';
 
-const initState = () => ({ url: null, key: null });
+const initState = () => ({ url: null, name: null });
 
 export default {
   ...info,
