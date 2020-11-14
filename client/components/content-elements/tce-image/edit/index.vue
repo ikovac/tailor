@@ -99,6 +99,7 @@ export default {
     save() {
       const formData = new FormData();
       formData.append('images', this.currentImage, this.imageName);
+      formData.append('placeholder', true);
       this.isUploading = true;
       api.upload(formData)
         .then(images => {
