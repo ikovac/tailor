@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import api from '../api';
+import api from '@/api/retouch-image';
 import Cropper from './Cropper';
 import { ElementPlaceholder } from 'tce-core';
 import { imgSrcToDataURL } from 'blob-util';

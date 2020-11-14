@@ -16,7 +16,12 @@ const logger = require('./shared/logger')();
 const router = require('./router');
 /* eslint-enable */
 
-const { STORAGE_PATH } = process.env;
+const {
+  STORAGE_PATH,
+  STORAGE_STRATEGY,
+  LOCAL_STORAGE_STORE_PATH,
+  LOCAL_STORAGE_SERVE_PATH
+} = process.env;
 
 const app = express();
 app.use(helmet());
@@ -27,6 +32,11 @@ app.use(auth.initialize());
 app.use(origin());
 app.use(express.static(path.join(__dirname, '../dist/')));
 if (STORAGE_PATH) app.use(express.static(STORAGE_PATH));
+if (STORAGE_STRATEGY === 'local') {
+  const storagePath = path.join(__dirname, '../', LOCAL_STORAGE_STORE_PATH);
+  const staticServePath = path.join('/', LOCAL_STORAGE_SERVE_PATH);
+  app.use(staticServePath, express.static(storagePath));
+}
 
 // Mount main router.
 app.use('/api/v1', requestLogger, router);
