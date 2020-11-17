@@ -18,9 +18,9 @@ const router = require('./router');
 
 const {
   STORAGE_PATH,
-  STORAGE_STRATEGY,
-  LOCAL_STORAGE_STORE_PATH,
-  LOCAL_STORAGE_SERVE_PATH
+  RETOUCH_STORAGE_STRATEGY,
+  RETOUCH_LOCAL_STORAGE_STORE_PATH,
+  RETOUCH_LOCAL_STORAGE_SERVE_PATH
 } = process.env;
 
 const app = express();
@@ -32,9 +32,9 @@ app.use(auth.initialize());
 app.use(origin());
 app.use(express.static(path.join(__dirname, '../dist/')));
 if (STORAGE_PATH) app.use(express.static(STORAGE_PATH));
-if (STORAGE_STRATEGY === 'local') {
-  const storagePath = path.join(__dirname, '../', LOCAL_STORAGE_STORE_PATH);
-  const staticServePath = path.join('/', LOCAL_STORAGE_SERVE_PATH);
+if (RETOUCH_STORAGE_STRATEGY === 'local') {
+  const storagePath = path.join(__dirname, '../', RETOUCH_LOCAL_STORAGE_STORE_PATH);
+  const staticServePath = path.join('/', RETOUCH_LOCAL_STORAGE_SERVE_PATH);
   app.use(staticServePath, express.static(storagePath));
 }
 

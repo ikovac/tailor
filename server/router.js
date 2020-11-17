@@ -3,10 +3,27 @@
 const { authenticate } = require('./shared/auth');
 const express = require('express');
 const repository = require('./repository');
-const retouchRoutes = require('image-service');
 const storage = require('./shared/storage/storage.router');
 const tag = require('./tag');
 const user = require('./user');
+
+const retouchOptions = {
+  storage: {
+    strategy: 'local',
+    maxFileSize: 5000000,
+    local: {
+      hostName: 'http://localhost:3000',
+      storePath: 'assets/images',
+      servePath: 'images'
+    }
+  },
+  cache: {
+    instance: null,
+    host: 'localhost',
+    cacheExpireTime: 2592000
+  }
+};
+const retouchRoutes = require('image-service')(retouchOptions);
 
 const router = express.Router();
 router.use(processBody);
