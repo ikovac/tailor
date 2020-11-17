@@ -47,5 +47,9 @@ dist/*
 !dist/.gitkeep
 stats.json
 
+# Retouch images
+assets/images/*
+!assets/.gitkeep
+
 # General
 .DS_Store
